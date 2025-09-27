@@ -18,7 +18,7 @@ app = FastAPI(
     redoc_url="/api/v1/redoc"
 )
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="")
 
 def get_db():
     db = SessionLocal()
@@ -43,7 +43,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(status_code=exc.status_code, content={"message": str(exc.detail)})
 
 
-@router.get("/persons/{id}", response_model=schemas.PersonResponse,
+@router.get("/api/v1/persons/{id}", response_model=schemas.PersonResponse,
             responses={404: {"model": schemas.ErrorResponse}})
 def read_person(id: int, db: Session = Depends(get_db)):
     p = crud.get_person(db, id)
@@ -51,11 +51,11 @@ def read_person(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Not found Person for ID")
     return p
 
-@router.get("/persons", response_model=List[schemas.PersonResponse])
+@router.get("/api/v1/persons", response_model=List[schemas.PersonResponse])
 def read_persons(db: Session = Depends(get_db)):
     return crud.get_persons(db)
 
-@router.post("/persons", status_code=201,
+@router.post("/api/v1/persons", status_code=201,
              responses={
                  201: {"description": "Created new Person",
                        "headers": {"Location": {"schema": {"type": "string"}}}},
@@ -65,7 +65,7 @@ def create_person(person: schemas.PersonRequest, db: Session = Depends(get_db)):
     created = crud.create_person(db, person)
     return Response(status_code=201, headers={"Location": f"/api/v1/persons/{created.id}"})
 
-@router.patch("/persons/{id}", response_model=schemas.PersonResponse,
+@router.patch("/api/v1/persons/{id}", response_model=schemas.PersonResponse,
               responses={400: {"model": schemas.ValidationErrorResponse},
                          404: {"model": schemas.ErrorResponse}})
 def patch_person(id: int, person: schemas.PersonRequest, db: Session = Depends(get_db)):
@@ -74,7 +74,7 @@ def patch_person(id: int, person: schemas.PersonRequest, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="Not found Person for ID")
     return updated
 
-@router.delete("/persons/{id}", status_code=204,
+@router.delete("/api/v1/persons/{id}", status_code=204,
                responses={404: {"model": schemas.ErrorResponse}})
 def delete_person(id: int, db: Session = Depends(get_db)):
     ok = crud.delete_person(db, id)
